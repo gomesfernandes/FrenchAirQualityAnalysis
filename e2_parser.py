@@ -24,6 +24,18 @@ NS = {
     'gn': 'urn:x-inspire:specification:gmlas:GeographicalNames:3.0'
 }
 
+OUTPUT_HEADER = [
+    'file_type',
+    'network_code',
+    'station_code',
+    'pollutant_code',
+    'start_date',
+    'end_date',
+    'verification',
+    'validity',
+    'pollutant_quantity'
+]
+
 
 def parse_date(datestring):
     '''
@@ -83,21 +95,10 @@ def transform_to_csv(filename):
         rows = parse_file(filename)
     except ValueError as err:
         return
-    header = [
-        'file_type',
-        'network code',
-        'station_code',
-        'pollutant_code',
-        'start_date',
-        'end_date',
-        'verification',
-        'validity',
-        'pollutant_quantity'
-    ]
     new_filename = filename.replace('data', 'parsed_data').replace('.xml', '.csv')
     with open(new_filename, 'w', newline='') as f:
         writer = csv.writer(f)
-        writer.writerow(header)
+        writer.writerow(OUTPUT_HEADER)
         writer.writerows(rows)
 
 
