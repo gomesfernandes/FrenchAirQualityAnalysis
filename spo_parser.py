@@ -28,14 +28,6 @@ OUTPUT_HEADER = [
 ]
 
 
-def read_dataset_d():
-    """
-    :return: the XML content of dataset D
-    """
-    xml_content = fetch.fetch_file_content(DATASET_D_URL)
-    return xml_content
-
-
 def parse_dataset_d(xml_content):
     """
     Extract the fields that interest us (SPOs)
@@ -63,7 +55,7 @@ def parse_dataset_d(xml_content):
 
 
 def transform_to_csv(outdir):
-    xml_content = read_dataset_d()
+    xml_content = fetch.fetch_file_content(DATASET_D_URL)
     rows = parse_dataset_d(xml_content)
     new_filename = os.path.join(outdir, 'spo.csv')
     with open(new_filename, 'w', newline='') as f:
@@ -75,5 +67,5 @@ def transform_to_csv(outdir):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--outdir', help='Output directory (default = `data`)', default='data')
-    parser.parse_args()
-    transform_to_csv('data')
+    args = parser.parse_args()
+    transform_to_csv(args.outdir)
