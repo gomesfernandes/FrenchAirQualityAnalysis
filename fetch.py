@@ -12,6 +12,25 @@ BASE_URI = 'https://www.data.gouv.fr/api/1'
 AIR_QUALITY_URI = '/datasets/5b98b648634f415309d52a50'
 HEADERS = {'X-API-KEY': os.environ.get('DATA_FR_API_KEY')}
 YESTERDAY = datetime.datetime.now(pytz.utc) - datetime.timedelta(days=1)
+NS = {
+    'gml': 'http://www.opengis.net/gml/3.2',
+    'xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+    'aqd': 'http://dd.eionet.europa.eu/schemaset/id2011850eu-1.0',
+    'base': 'http://inspire.ec.europa.eu/schemas/base/3.3',
+    'base2': 'http://inspire.ec.europa.eu/schemas/base2/1.0',
+    'ef': 'http://inspire.ec.europa.eu/schemas/ef/3.0',
+    'ompr': 'http://inspire.ec.europa.eu/schemas/ompr/2.0',
+    'xlink': 'http://www.w3.org/1999/xlink',
+    'sam': 'http://www.opengis.net/sampling/2.0',
+    'sams': 'http://www.opengis.net/samplingSpatial/2.0',
+    'gmd': 'http://www.isotc211.org/2005/gmd',
+    'gco': 'http://www.isotc211.org/2005/gco',
+    'om': 'http://www.opengis.net/om/2.0',
+    'swe': 'http://www.opengis.net/swe/2.0',
+    'am': 'http://inspire.ec.europa.eu/schemas/am/3.0',
+    'ad': 'urn:x-inspire:specification:gmlas:Addresses:3.0',
+    'gn': 'urn:x-inspire:specification:gmlas:GeographicalNames:3.0'
+}
 
 
 def fetch_all_resources():
@@ -64,4 +83,5 @@ def same_date(dt_str, dt):
 
 if __name__ == '__main__':
     resources = fetch_all_resources()
-    print(filter_e2_files_by_date(resources, YESTERDAY))
+    print(resources)
+    #print(filter_e2_files_by_date(resources, YESTERDAY))

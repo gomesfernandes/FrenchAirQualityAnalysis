@@ -9,30 +9,14 @@ For each SPO, we retrieve the following information:
     * network : the ID of the network this SPO is part of
     * zone : the ID zone of the station this SPO is part of
 """
+import argparse
 import csv
 import os
 import xml.etree.ElementTree as et
 
-NS = {
-    'gml': 'http://www.opengis.net/gml/3.2',
-    'xsi': 'http://www.w3.org/2001/XMLSchema-instance',
-    'aqd': 'http://dd.eionet.europa.eu/schemaset/id2011850eu-1.0',
-    'base': 'http://inspire.ec.europa.eu/schemas/base/3.3',
-    'base2': 'http://inspire.ec.europa.eu/schemas/base2/1.0',
-    'ef': 'http://inspire.ec.europa.eu/schemas/ef/3.0',
-    'ompr': 'http://inspire.ec.europa.eu/schemas/ompr/2.0',
-    'xlink': 'http://www.w3.org/1999/xlink',
-    'sam': 'http://www.opengis.net/sampling/2.0',
-    'sams': 'http://www.opengis.net/samplingSpatial/2.0',
-    'gmd': 'http://www.isotc211.org/2005/gmd',
-    'gco': 'http://www.isotc211.org/2005/gco',
-    'om': 'http://www.opengis.net/om/2.0',
-    'swe': 'http://www.opengis.net/swe/2.0',
-    'am': 'http://inspire.ec.europa.eu/schemas/am/3.0',
-    'ad': 'urn:x-inspire:specification:gmlas:Addresses:3.0',
-    'gn': 'urn:x-inspire:specification:gmlas:GeographicalNames:3.0'
-}
+import fetch
 
+DATASET_D_URL = 'https://www.data.gouv.fr/fr/datasets/r/64807938-5d57-4947-a4b5-e9100e28df5d'
 OUTPUT_HEADER = [
     'spo_id',
     'lat',
@@ -44,28 +28,44 @@ OUTPUT_HEADER = [
 ]
 
 
-def parse_dataset_d(folder):
-    xtree = et.parse(os.path.join(folder, 'datasetD.xml'))
-    xroot = xtree.getroot()
-    spo_node_list = xroot.findall('.//aqd:AQD_SamplingPoint', NS)
-    content = []
+def read_dataset_d():
+    """
+    :return: the XML content of dataset D
+    """
+    xml_content = fetch.fetch_file_content(DATASET_D_URL)
+    return xml_content
+
+
+def parse_dataset_d(xml_content):
+    """
+    Extract the fields that interest us (SPOs)
+    :param xml_content:
+    :return: a list of attributes per SPO (cf OUTPUT_HEADER)
+    """
+    if xml_content is None:
+        return []
+    xroot = et.fromstring(xml_content)
+    spo_node_list = xroot.findall('.//aqd:AQD_SamplingPoint', fetch.NS)
+    parsed_content = []
     for spo_node in spo_node_list:
-        spo_id = spo_node.attrib['{' + NS['gml'] + '}id']
-        lat, long = spo_node.find('.//ef:geometry', NS).find('.//gml:pos', NS).text.split()
-        href_attib = '{' + NS['xlink'] + '}href'
-        station_node = spo_node.find('.//ef:broader', NS)
+        spo_id = spo_node.attrib['{' + fetch.NS['gml'] + '}id']
+        lat, long = spo_node.find('.//ef:geometry', fetch.NS).find('.//gml:pos', fetch.NS).text.split()
+        href_attib = '{' + fetch.NS['xlink'] + '}href'
+        station_node = spo_node.find('.//ef:broader', fetch.NS)
         station = station_node.attrib[href_attib].split('/')[1]
-        network_node = spo_node.find('.//ef:belongsTo', NS)
+        network_node = spo_node.find('.//ef:belongsTo', fetch.NS)
         network = network_node.attrib[href_attib].split('/')[1]
-        zone_node = spo_node.find('.//aqd:zone', NS)
+        zone_node = spo_node.find('.//aqd:zone', fetch.NS)
         zone = zone_node.attrib[href_attib].split('/')[1]
-        content.append([spo_id, lat, long, station, network, zone])
-    return content
+        pollutant = spo_id.split('_')[-1]
+        parsed_content.append([spo_id, lat, long, pollutant, station, network, zone])
+    return parsed_content
 
 
-def transform_to_csv(file_location):
-    rows = parse_dataset_d(file_location)
-    new_filename = os.path.join(file_location, 'spo.csv')
+def transform_to_csv(outdir):
+    xml_content = read_dataset_d()
+    rows = parse_dataset_d(xml_content)
+    new_filename = os.path.join(outdir, 'spo.csv')
     with open(new_filename, 'w', newline='') as f:
         writer = csv.writer(f)
         writer.writerow(OUTPUT_HEADER)
@@ -73,4 +73,7 @@ def transform_to_csv(file_location):
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--outdir', help='Output directory (default = `data`)', default='data')
+    parser.parse_args()
     transform_to_csv('data')

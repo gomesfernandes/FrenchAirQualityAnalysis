@@ -4,25 +4,8 @@ import pytz
 import re
 import xml.etree.ElementTree as et
 
-NS = {
-    'gml': 'http://www.opengis.net/gml/3.2',
-    'xsi': 'http://www.w3.org/2001/XMLSchema-instance',
-    'aqd': 'http://dd.eionet.europa.eu/schemaset/id2011850eu-1.0',
-    'base': 'http://inspire.ec.europa.eu/schemas/base/3.3',
-    'base2': 'http://inspire.ec.europa.eu/schemas/base2/1.0',
-    'ef': 'http://inspire.ec.europa.eu/schemas/ef/3.0',
-    'ompr': 'http://inspire.ec.europa.eu/schemas/ompr/2.0',
-    'xlink': 'http://www.w3.org/1999/xlink',
-    'sam': 'http://www.opengis.net/sampling/2.0',
-    'sams': 'http://www.opengis.net/samplingSpatial/2.0',
-    'gmd': 'http://www.isotc211.org/2005/gmd',
-    'gco': 'http://www.isotc211.org/2005/gco',
-    'om': 'http://www.opengis.net/om/2.0',
-    'swe': 'http://www.opengis.net/swe/2.0',
-    'am': 'http://inspire.ec.europa.eu/schemas/am/3.0',
-    'ad': 'urn:x-inspire:specification:gmlas:Addresses:3.0',
-    'gn': 'urn:x-inspire:specification:gmlas:GeographicalNames:3.0'
-}
+import fetch
+
 
 OUTPUT_HEADER = [
     'file_type',
@@ -59,16 +42,16 @@ def parse_file(filename):
     file_type = match.group(1)
     xtree = et.parse(filename)
     xroot = xtree.getroot()
-    observations = xroot.findall('.//om:OM_Observation', NS)
+    observations = xroot.findall('.//om:OM_Observation', fetch.NS)
     content = []
     for observation_node in observations:
-        obs_attrib = observation_node.attrib['{' + NS['gml'] + '}id'].split('_')
+        obs_attrib = observation_node.attrib['{' + fetch.NS['gml'] + '}id'].split('_')
         network_code = obs_attrib[-4]
         station_code = obs_attrib[-3]
         pollutant_code = obs_attrib[-2]
-        num_observations = list(observation_node.find('.//swe:Count', NS))[0].text
+        num_observations = list(observation_node.find('.//swe:Count', fetch.NS))[0].text
         if int(num_observations) > 0:
-            measurements = observation_node.find('.//swe:values', NS).text.rstrip('@@').split('@@')
+            measurements = observation_node.find('.//swe:values', fetch.NS).text.rstrip('@@').split('@@')
             for single_measurement in measurements:
                 values = single_measurement.split(',')
                 start_date = parse_date(values[0])
@@ -93,7 +76,7 @@ def parse_file(filename):
 def transform_to_csv(filename):
     try:
         rows = parse_file(filename)
-    except ValueError as err:
+    except ValueError:
         return
     new_filename = filename.replace('data', 'parsed_data').replace('.xml', '.csv')
     with open(new_filename, 'w', newline='') as f:
