@@ -6,12 +6,10 @@ Note that you must set the 'DATA_FR_API_KEY' environment variable to the API key
 import datetime
 import os
 import requests
-import pytz
 
 BASE_URI = 'https://www.data.gouv.fr/api/1'
 AIR_QUALITY_URI = '/datasets/5b98b648634f415309d52a50'
 HEADERS = {'X-API-KEY': os.environ.get('DATA_FR_API_KEY')}
-YESTERDAY = datetime.datetime.now(pytz.utc) - datetime.timedelta(days=1)
 NS = {
     'gml': 'http://www.opengis.net/gml/3.2',
     'xsi': 'http://www.w3.org/2001/XMLSchema-instance',
@@ -65,7 +63,9 @@ def filter_e2_files_by_date(resources, date):
     :param date:
     :return: a list of resources created on the given day
     """
-    return str([r for r in resources if (r['type'] == 'main' and same_date(r['created_at'], date))])
+    if not resources or len(resources) == 0:
+        return
+    return [r for r in resources if (r['type'] == 'main' and same_date(r['created_at'], date))]
 
 
 def same_date(dt_str, dt):
@@ -84,4 +84,3 @@ def same_date(dt_str, dt):
 if __name__ == '__main__':
     resources = fetch_all_resources()
     print(resources)
-    #print(filter_e2_files_by_date(resources, YESTERDAY))
