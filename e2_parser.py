@@ -38,10 +38,10 @@ OUTPUT_HEADER = [
 
 
 def parse_date(datestring):
-    '''
+    """
     Parse a date string in ISO format, handling cases where time is indicated as 'T24:00:00'.
     Returns the corresponding datetime.
-    '''
+    """
     add_day = False
     if re.search(r'T24:00:00', datestring):
         datestring = datestring.replace('T24:00:00', 'T00:00:00')
@@ -103,5 +103,5 @@ def transform_to_csv(filename):
 
 
 if __name__ == '__main__':
-    file = 'data/fr-2020-e2-2020-2020-03-26-07-t.xml'
+    file = 'data/fr-2020-e2-2020-2020-03-30-06-t.xml'
     transform_to_csv(file)

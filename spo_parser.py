@@ -1,3 +1,14 @@
+"""
+A one-time parser for the dataset "D", which contains information about the Sample Points (SPOs) in the E2 datasets.
+For each SPO, we retrieve the following information:
+    * spo_id : the SPOs identifier
+    * lat : latitude
+    * long : longitude
+    * pollutant : the type of pollutant measured by this SPO
+    * station : the ID of the station this SPO belongs to
+    * network : the ID of the network this SPO is part of
+    * zone : the ID zone of the station this SPO is part of
+"""
 import csv
 import os
 import xml.etree.ElementTree as et
