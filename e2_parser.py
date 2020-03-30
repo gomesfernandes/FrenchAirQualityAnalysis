@@ -1,12 +1,14 @@
+import argparse
 import csv
 from datetime import datetime, timedelta
+import os
 import pytz
 import re
 import xml.etree.ElementTree as et
 
 import fetch
 
-
+YESTERDAY = datetime.now(pytz.utc) - timedelta(days=1)
 OUTPUT_HEADER = [
     'file_type',
     'network_code',
@@ -35,13 +37,8 @@ def parse_date(datestring):
     return d
 
 
-def parse_file(filename):
-    match = re.search(r'-([t|v])\.xml$', filename)
-    if not match:
-        raise ValueError('Unknown file type')
-    file_type = match.group(1)
-    xtree = et.parse(filename)
-    xroot = xtree.getroot()
+def parse_content(xml_content, file_type):
+    xroot = et.fromstring(xml_content)
     observations = xroot.findall('.//om:OM_Observation', fetch.NS)
     content = []
     for observation_node in observations:
@@ -73,18 +70,33 @@ def parse_file(filename):
     return content
 
 
-def transform_to_csv(filename):
-    try:
-        rows = parse_file(filename)
-    except ValueError:
-        return
-    new_filename = filename.replace('data', 'parsed_data').replace('.xml', '.csv')
-    with open(new_filename, 'w', newline='') as f:
+def transform_resource_to_csv(resource, dir):
+    match = re.search(r'-([t|v])\.xml$', resource['url'])
+    if not match:
+        raise ValueError('Unknown file type')
+    file_type = match.group(1)
+    xml_content = fetch.fetch_file_content(resource['url'])
+    rows = parse_content(xml_content, file_type)
+    new_filename = resource['url'].split('/')[-1].replace('.xml', '.csv')
+    with open(os.path.join(dir, new_filename), 'w', newline='') as f:
         writer = csv.writer(f)
         writer.writerow(OUTPUT_HEADER)
         writer.writerows(rows)
 
 
+def get_resources_from_yesterday():
+    return fetch.filter_e2_files_by_date(fetch.fetch_all_resources(), YESTERDAY)
+
+
 if __name__ == '__main__':
-    file = 'data/fr-2020-e2-2020-2020-03-30-06-t.xml'
-    transform_to_csv(file)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--outdir', help='Output directory (default = `parsed_data`)', default='parsed_data')
+    args = parser.parse_args()
+    outdir = args.outdir
+    if not os.path.exists(outdir):
+        os.makedirs(outdir)
+
+    resources = get_resources_from_yesterday()
+    if resources:
+        for r in resources:
+            transform_resource_to_csv(r, outdir)

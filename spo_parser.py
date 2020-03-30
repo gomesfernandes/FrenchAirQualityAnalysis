@@ -68,4 +68,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--outdir', help='Output directory (default = `data`)', default='data')
     args = parser.parse_args()
+    outdir = args.outdir
+    if not os.path.exists(outdir):
+        os.makedirs(outdir)
     transform_to_csv(args.outdir)
