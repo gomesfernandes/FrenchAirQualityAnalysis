@@ -70,7 +70,7 @@ def parse_content(xml_content, file_type):
     return content
 
 
-def transform_resource_to_csv(resource, dir):
+def transform_resource_to_csv(resource, dir, with_header=True):
     match = re.search(r'-([t|v])\.xml$', resource['url'])
     if not match:
         raise ValueError('Unknown file type')
@@ -80,7 +80,8 @@ def transform_resource_to_csv(resource, dir):
     new_filename = resource['url'].split('/')[-1].replace('.xml', '.csv')
     with open(os.path.join(dir, new_filename), 'w', newline='') as f:
         writer = csv.writer(f)
-        writer.writerow(OUTPUT_HEADER)
+        if with_header:
+            writer.writerow(OUTPUT_HEADER)
         writer.writerows(rows)
 
 
