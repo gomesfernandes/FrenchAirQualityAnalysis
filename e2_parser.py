@@ -1,13 +1,15 @@
 import argparse
 import csv
-from datetime import datetime, timedelta
+from datetime import datetime
+from datetime import timedelta
 import os
-import pytz
 import re
 import tempfile
 import xml.etree.ElementTree as et
 
+from dateutil.parser import isoparse
 from google.cloud import storage
+import pytz
 
 import fetch
 
@@ -34,7 +36,7 @@ def parse_date(datestring):
     if re.search(r'T24:00:00', datestring):
         datestring = datestring.replace('T24:00:00', 'T00:00:00')
         add_day = True
-    d = datetime.fromisoformat(datestring).astimezone(pytz.utc)
+    d = isoparse(datestring).astimezone(pytz.utc)
     if add_day:
         d = d + timedelta(days=1)
     return d

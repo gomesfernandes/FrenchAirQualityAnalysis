@@ -1,5 +1,6 @@
 apache-airflow
 apache-beam[gcp]
+python-dateutil
 google-cloud-storage
 pytz
 requests

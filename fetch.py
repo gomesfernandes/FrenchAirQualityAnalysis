@@ -3,7 +3,7 @@ This module makes calls to the data.gouv.fr API to list the available resources 
 download individual datasets.
 Note that you must set the 'DATA_FR_API_KEY' environment variable to the API key.
 """
-import datetime
+from datetime import datetime
 import os
 import requests
 
@@ -75,9 +75,9 @@ def same_date(dt_str, dt):
     :return: True if dt_str has the same date as dt, False otherwise
     """
     try:
-        transformed_datetime = datetime.datetime.strptime(dt_str, '%Y-%m-%dT%H:%M:%S.%f')
+        transformed_datetime = datetime.strptime(dt_str, '%Y-%m-%dT%H:%M:%S.%f')
     except ValueError:
-        transformed_datetime = datetime.datetime.strptime(dt_str, '%Y-%m-%dT%H:%M:%S')
+        transformed_datetime = datetime.strptime(dt_str, '%Y-%m-%dT%H:%M:%S')
     return transformed_datetime.date() == dt.date()
 
 
