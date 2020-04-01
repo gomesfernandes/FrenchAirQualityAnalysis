@@ -5,6 +5,8 @@ Airflow DAG that will:
     3 - launch a Dataflow job, which writes each row to BigQuery
     4 - delete the CSV files
 """
+from datetime import datetime
+from datetime import timedelta
 import logging
 import os
 
@@ -12,12 +14,13 @@ from airflow import configuration, DAG, models
 from airflow.operators.bash_operator import BashOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.contrib.operators.dataflow_operator import DataFlowPythonOperator
-from airflow.utils.dates import days_ago
+from dateutil.parser import isoparse
 
 import e2_parser as e2
 
+LOGGER = logging.getLogger("airqualityflow")
 DEFAULT_DAG_ARGS = {
-    'start_date': days_ago(1, hour=11),
+    'start_date': datetime(2020, 3, 27, 12, 0),
     'project_id': models.Variable.get('GCP_PROJECT_ID'),
     'schedule_interval': '@daily'
 }
@@ -37,24 +40,34 @@ DATAFLOW_ARGS = {
 DATAFLOW_FILE = os.path.join(configuration.get('core', 'dags_folder'), 'air_quality_flow.py')
 
 
-def create_csv_files(bucket):
-    logging.info("create_csv_files -- bucket : " + str(bucket))
-    resources_list = e2.get_resources_from_yesterday()
-    logging.info("create_csv_files -- resources_list : " + str(resources_list))
+def create_csv_files(bucket, **context):
+    LOGGER.info('create_csv_files input date : ' + str(context['execution_date']))
+
+    search_date = isoparse(str(context['execution_date'])) - timedelta(days=1)
+    resources_list = e2.get_resources_for_date(search_date)
+    LOGGER.info('Found the following resources : ' + str(resources_list))
+    new_files = []
     for resource in resources_list:
-        rows, new_filename = e2.format_resource_to_csv(resource)
-        logging.info("create_csv_files -- new_filename : " + str(new_filename))
+        try:
+            rows, new_filename = e2.format_resource_to_csv(resource)
+        except ValueError:
+            continue
         e2.write_to_bucket(rows, new_filename, bucket.replace('gs://', ''), with_header=False)
+        new_files.append(os.path.join(bucket, new_filename))
+    task_instance = context['task_instance']
+    task_instance.xcom_push(key='files_to_delete', value=' '.join(new_files))
 
 
 with DAG(dag_id='air_quality_dag',
          description='Daily Air Quality dataset import',
+         catchup=True,
          default_args=DEFAULT_DAG_ARGS) as dag:
 
     fetch_task = PythonOperator(
         task_id='get_latest_datasets',
         python_callable=create_csv_files,
         op_args=[models.Variable.get('AIRQUALITY_BUCKET')],
+        provide_context=True,
         dag=dag
     )
 
@@ -62,12 +75,14 @@ with DAG(dag_id='air_quality_dag',
         task_id='push_to_bigquery',
         py_file=DATAFLOW_FILE,
         options=DATAFLOW_ARGS,
+        retries=2,
+        retry_delay=timedelta(minutes=5),
         dag=dag
     )
 
     delete_csv_task = BashOperator(
         task_id='delete_csv_files',
-        bash_command='gsutil rm {}/*.csv'.format(models.Variable.get('AIRQUALITY_BUCKET')),
+        bash_command="gsutil rm {{ task_instance.xcom_pull(task_ids='get_latest_datasets', key='files_to_delete') }}",
         dag=dag
     )
 

@@ -99,11 +99,14 @@ def format_resource_to_csv(resource):
     return rows, new_filename
 
 
-def get_resources_from_yesterday():
+def get_resources_for_date(date):
     """
-    :return: a list of resources corresponding to yesterday's E2 datasets
+    Retrieve E2 files published on the given date. Note that the files may contain measurements made on
+    the day before.
+    :param date:
+    :return: a list of resources corresponding to the E2 datasets posted on the given date
     """
-    return fetch.filter_e2_files_by_date(fetch.fetch_all_resources(), YESTERDAY)
+    return fetch.filter_e2_files_by_date(fetch.fetch_all_resources(), date)
 
 
 def write_to_file(rows, filename, directory, with_header=False):
@@ -149,7 +152,7 @@ if __name__ == '__main__':
     if not os.path.exists(outdir):
         os.makedirs(outdir)
 
-    resources_list = get_resources_from_yesterday()
+    resources_list = get_resources_for_date(YESTERDAY)
     for resource in resources_list:
         rows, new_filename = format_resource_to_csv(resource)
         write_to_file(rows, new_filename, outdir, with_header=True)
