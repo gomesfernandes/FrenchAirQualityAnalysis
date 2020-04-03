@@ -147,13 +147,20 @@ def write_to_bucket(rows, filename, bucket, with_header=False):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--outdir', help='Output directory (default = `parsed_data`)', default='parsed_data')
+    parser.add_argument('--date',
+                        help='A date to filter the results (default is yesterday)',
+                        type=lambda s: isoparse(s),
+                        default=YESTERDAY,
+                        required=False)
+    parser.add_argument('--no-header', action="store_false", default=True)
     args = parser.parse_args()
+
     outdir = args.outdir
     if not os.path.exists(outdir):
         os.makedirs(outdir)
 
-    resources_list = get_resources_for_date(YESTERDAY)
+    resources_list = get_resources_for_date(args.date)
     for resource in resources_list:
         rows, new_filename = format_resource_to_csv(resource)
-        write_to_file(rows, new_filename, outdir, with_header=True)
-        #write_to_bucket(rows, new_filename, 'airqualitylcsqa', with_header=False)
+        write_to_file(rows, new_filename, outdir, with_header=args.no_header)
+        # write_to_bucket(rows, new_filename, 'airqualitylcsqa', with_header=False)

@@ -19,21 +19,23 @@ from dateutil.parser import isoparse
 import e2_parser as e2
 
 LOGGER = logging.getLogger("airqualityflow")
+GCP_PROJECT_ID = models.Variable.get('GCP_PROJECT_ID')
+AIRQUALITY_BUCKET = models.Variable.get('AIRQUALITY_BUCKET')
 DEFAULT_DAG_ARGS = {
-    'start_date': datetime(2020, 3, 27, 12, 0),
-    'project_id': models.Variable.get('GCP_PROJECT_ID'),
+    'start_date': datetime(2020, 4, 1, 12, 0),
+    'project_id': GCP_PROJECT_ID,
     'schedule_interval': '@daily'
 }
 
 DATAFLOW_ARGS = {
-    'input': models.Variable.get('AIRQUALITY_BUCKET'),
+    'input': AIRQUALITY_BUCKET,
     'output': models.Variable.get('E2_TABLE'),
-    'project': models.Variable.get('GCP_PROJECT_ID'),
+    'project': GCP_PROJECT_ID,
     'job_name': 'airqualityflow',
-    'region': 'europe-west1',
+    'region': 'us-central1',
     'save_main_session': '',
-    'staging_location': '{}/temp/'.format(models.Variable.get('AIRQUALITY_BUCKET')),
-    'temp_location': '{}/temp'.format(models.Variable.get('AIRQUALITY_BUCKET')),
+    'staging_location': '{}/temp/'.format(AIRQUALITY_BUCKET),
+    'temp_location': '{}/temp'.format(AIRQUALITY_BUCKET),
     'runner': 'DataflowRunner'
 }
 
@@ -58,15 +60,17 @@ def create_csv_files(bucket, **context):
     task_instance.xcom_push(key='files_to_delete', value=' '.join(new_files))
 
 
-with DAG(dag_id='air_quality_dag',
-         description='Daily Air Quality dataset import',
-         catchup=True,
-         default_args=DEFAULT_DAG_ARGS) as dag:
+with DAG(
+        dag_id='air_quality_dag',
+        description='Daily Air Quality dataset import',
+        max_active_runs=1,
+        # catchup=True, //TODO : allow parallelization of DAG runs (currently max_active_runs = 1)
+        default_args=DEFAULT_DAG_ARGS) as dag:
 
     fetch_task = PythonOperator(
         task_id='get_latest_datasets',
         python_callable=create_csv_files,
-        op_args=[models.Variable.get('AIRQUALITY_BUCKET')],
+        op_args=[AIRQUALITY_BUCKET],
         provide_context=True,
         dag=dag
     )
