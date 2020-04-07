@@ -6,7 +6,7 @@ import csv
 import os
 import xml.etree.ElementTree as et
 
-from src import fetch
+import fetch
 
 DATASET_B_URL = 'https://www.data.gouv.fr/fr/datasets/r/eeebe970-6e2b-47fc-b801-4a38d53fac0d'
 OUTPUT_HEADER = [
@@ -112,7 +112,7 @@ def transform_to_csv(outdir):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--outdir', help='Output directory (default = `data`)', default='data')
+    parser.add_argument('--outdir', help='output directory (default = `data`)', default='data')
     args = parser.parse_args()
     outdir = args.outdir
     if not os.path.exists(outdir):

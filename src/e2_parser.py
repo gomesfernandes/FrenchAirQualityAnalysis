@@ -11,7 +11,7 @@ from dateutil.parser import isoparse
 from google.cloud import storage
 import pytz
 
-from src import fetch
+import fetch
 
 YESTERDAY = datetime.now(pytz.utc) - timedelta(days=1)
 OUTPUT_HEADER = [
@@ -146,13 +146,13 @@ def write_to_bucket(rows, filename, bucket, with_header=False):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--outdir', help='Output directory (default = `parsed_data`)', default='parsed_data')
+    parser.add_argument('--outdir', help='output directory (default = `parsed_data`)', default='parsed_data')
     parser.add_argument('--date',
-                        help='A date to filter the results (default is yesterday)',
+                        help='a date to filter the results (default is yesterday)',
                         type=lambda s: isoparse(s),
                         default=YESTERDAY,
                         required=False)
-    parser.add_argument('--no-header', action="store_false", default=True)
+    parser.add_argument('--no-header', help='add a header as first row of the CSV', action='store_false', default=True)
     args = parser.parse_args()
 
     outdir = args.outdir
