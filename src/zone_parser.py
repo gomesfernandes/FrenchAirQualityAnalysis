@@ -6,7 +6,7 @@ import csv
 import os
 import xml.etree.ElementTree as et
 
-import fetch
+from src import fetch
 
 DATASET_B_URL = 'https://www.data.gouv.fr/fr/datasets/r/eeebe970-6e2b-47fc-b801-4a38d53fac0d'
 OUTPUT_HEADER = [

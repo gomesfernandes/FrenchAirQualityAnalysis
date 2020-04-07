@@ -14,7 +14,7 @@ import csv
 import os
 import xml.etree.ElementTree as et
 
-import fetch
+from src import fetch
 
 DATASET_D_URL = 'https://www.data.gouv.fr/fr/datasets/r/64807938-5d57-4947-a4b5-e9100e28df5d'
 OUTPUT_HEADER = [

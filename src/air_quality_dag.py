@@ -16,7 +16,7 @@ from airflow.operators.python_operator import PythonOperator
 from airflow.contrib.operators.dataflow_operator import DataFlowPythonOperator
 from dateutil.parser import isoparse
 
-import e2_parser as e2
+from src import e2_parser as e2
 
 LOGGER = logging.getLogger("airqualityflow")
 GCP_PROJECT_ID = models.Variable.get('GCP_PROJECT_ID')

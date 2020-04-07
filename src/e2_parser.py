@@ -11,7 +11,7 @@ from dateutil.parser import isoparse
 from google.cloud import storage
 import pytz
 
-import fetch
+from src import fetch
 
 YESTERDAY = datetime.now(pytz.utc) - timedelta(days=1)
 OUTPUT_HEADER = [

@@ -1,4 +1,4 @@
-python air_quality_flow.py \
+python src/air_quality_flow.py \
 --input gs://airqualitylcsqa \
 --output covid-1:airquality.E2 \
 --project covid-1 \

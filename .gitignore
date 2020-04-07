@@ -1,5 +1,5 @@
 ### project specific###
-data/*
+src/data/*
 parsed_data/*
 
 ## -- generated gitignore - 
