@@ -42,3 +42,11 @@ The next two files are meant to automatise the work by using Google Cloud Platfo
 * `air_quality_dag` : Creates an Airflow DAG scheduled to run once a day on Google Cloud Composer
 * `air_quality_flow` : Is called by the DAG to create and run a Dataflow pipeline that imports data into BigQuery
 
+![Airflow DAG](img/airflow.png)  
+
+![Successful Dataflow pipeline run](img/dataflow.png)  
+
+![Grand-Est Zones visualised on map](img/geoviz.png)
+
+![Average pollution in the Grand-Est in March 2020](img/avg_pollution_march_2020.png)
+
